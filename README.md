@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MANDO · Simulador de liderazgo
 
-## Getting Started
+Juego de estrategia por turnos para entrenar decisiones de liderazgo. El jugador funda y dirige una
+agencia de brand experience (BTL) en Lima, desde el garaje hasta convertirse en referente regional.
+Cada turno es una semana: gana proyectos, cuida la caja, conversa con su equipo y resuelve
+situaciones sin respuesta obvia. El puntaje es lo que vale su parte de la empresa al final.
 
-First, run the development server:
+Vive en `/mando`. La raíz del sitio redirige ahí. El tablero anterior de esferas quedó en `/dashboard`.
+
+## Cómo correrlo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Otros comandos:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm test           # pruebas del motor (determinismo, partidas completas, todas las situaciones)
+npm run sim        # simulación de balance: tres bots juegan 150 partidas cada uno
+npm run sim -- traza razonable sim-2   # una partida semana a semana
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Voz con IA (opcional)
 
-## Learn More
+Sin configurar nada, el juego funciona completo: las personas del equipo responden con voces
+generadas desde su estado real (ánimo, estrés, energía, sueldo, recuerdos).
 
-To learn more about Next.js, take a look at the following resources:
+Con una clave de la API de Claude, cada persona conversa en vivo en los 1:1 y al final de la partida
+un coach escribe una devolución sobre las decisiones tomadas. Copia `.env.example` a `.env.local`
+y completa:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+ANTHROPIC_API_KEY=...          # activa la voz con IA
+MANDO_MODELO=claude-opus-5-5   # opcional
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+La ruta `app/api/mando/ia/route.ts` mantiene la clave en el servidor, valida el tamaño de cada
+solicitud y limita el uso por IP. Si la IA falla o no responde, el juego vuelve solo a las voces
+locales.
 
-## Deploy on Vercel
+## Cómo está armado
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Ruta | Qué contiene |
+|---|---|
+| `lib/mando/types.ts` | Estado de la partida (JSON serializable) y tipos de situaciones |
+| `lib/mando/motor.ts` | Reglas: acciones del CEO, cierre de semana, etapas, valoración, perfil de liderazgo |
+| `lib/mando/efectos.ts` | Mutadores (caja, ánimo, reputación) y generadores de personas, clientes y proyectos |
+| `lib/mando/situaciones.ts` | Mazo de 39 situaciones de decisión y sus consecuencias diferidas |
+| `lib/mando/datos.ts` | Contenido y números de balance: roles, clientes, tamaños de proyecto, etapas, logros |
+| `lib/mando/voz.ts` | Pensamientos semanales y respuestas de 1:1 sin IA; ficha de cada persona para la IA |
+| `components/mando/` | Interfaz: inicio, paneles (Semana, Equipo, Clientes, Empresa) y modales |
+| `app/mando/mando.css` | Estilos sobre los tokens de marca de Purpural |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+El motor usa un generador aleatorio con semilla guardado dentro de la partida: la misma semilla y
+las mismas decisiones producen la misma partida. El modo «Reto de la semana» usa una semilla por
+semana del calendario para que todo el equipo juegue el mismo mercado y compare resultados.
+
+### Agregar una situación
+
+Añade un objeto a `SITUACIONES` en `lib/mando/situaciones.ts` con `id`, `titulo`, `categoria`,
+`etapas`, `texto`, `opciones` (cada una con `estilo`, `aplicar` y, si hace falta, `bloqueo`) y
+`leccion`. `npm test` ejecuta cada opción de cada situación y sus consecuencias.
+
+### Llevarlo a otra industria o puesto
+
+Las reglas no dependen del rubro. Para otro escenario se reemplaza el contenido: roles y áreas,
+clientes y tamaños de proyecto en `datos.ts`, las situaciones en `situaciones.ts` y las voces en
+`voz.ts`. Después, `npm run sim` para volver a calibrar la economía.
+
+## Límites actuales
+
+- La partida y el ranking se guardan en el navegador (localStorage). No hay cuentas ni ranking
+  compartido entre personas todavía: el reto semanal se compara copiando el resultado.
+- La voz con IA se probó con las voces locales de respaldo; la conexión en vivo requiere una clave.
