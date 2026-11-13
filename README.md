@@ -5,7 +5,29 @@ agencia de brand experience (BTL) en Lima, desde el garaje hasta convertirse en 
 Cada turno es una semana: gana proyectos, cuida la caja, conversa con su equipo y resuelve
 situaciones sin respuesta obvia. El puntaje es lo que vale su parte de la empresa al final.
 
-Vive en `/mando`. La raíz del sitio redirige ahí. El tablero anterior de esferas quedó en `/dashboard`.
+El tablero anterior de esferas quedó en `/dashboard`.
+
+## Oficina 3D (maqueta jugable)
+
+En `/oficina` (la raíz del sitio redirige ahí) está la maqueta en tiempo real hecha con three.js:
+la misma agencia vista desde arriba con cámara de juego de estrategia, y cada persona con ánimo,
+estrés y energía como en un simulador de vida.
+
+- **Cámara:** `W A S D` o arrastrar con clic derecho para moverla, rueda para acercar desde la vista
+  general hasta el nivel de una persona, `Q` `E` para girar, minimapa para saltar.
+- **Selección y órdenes:** clic o caja de selección; clic derecho sobre el piso, un escritorio, la
+  cafetera, los sofás o la sala de reuniones para dar la orden. El CEO es una figura más: en su
+  despacho trae clientes y, enviado hacia alguien, conversa y le sube el ánimo.
+- **Simulación:** jornada de 9 a 18, proyectos con trabajo por área y plazo, sueldos y alquiler
+  diarios, contratación y compra de escritorios. La gente decide sola ir por café o descansar; si
+  la obligas a seguir, obedece y lo paga en ánimo. Con estrés al máximo se va a casa; con ánimo
+  por el suelo, renuncia.
+
+El código vive en `lib/oficina/` y no usa framework: `sim.ts` y `mapa.ts` son la simulación (se
+prueban sin navegador), `escena.ts` es three.js, `juego.ts` es el controlador con la interfaz.
+`npm run build:oficina` genera un único HTML jugable en `out/mando-oficina.html`.
+
+El juego por turnos de la primera versión sigue en `/mando`.
 
 ## Cómo correrlo
 
